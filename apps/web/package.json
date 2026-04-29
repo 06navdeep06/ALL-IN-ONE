@@ -24,8 +24,8 @@
     "clsx": "^2.1.1",
     "tailwind-merge": "^2.6.0",
     "axios": "^1.7.9",
-    "@repo/shared-types": "workspace:*",
-    "@repo/zod-schemas": "workspace:*"
+    "@repo/shared-types": "*",
+    "@repo/zod-schemas": "*"
   },
   "devDependencies": {
     "@types/node": "^22.10.10",
