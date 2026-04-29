@@ -10,11 +10,7 @@ export const metadata: Metadata = {
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
-    <ClerkProvider
-      publishableKey={
-        process.env.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY ?? 'pk_test_placeholder'
-      }
-    >
+    <ClerkProvider>
       <html lang="en" className="dark">
         <body>
           <Providers>{children}</Providers>
