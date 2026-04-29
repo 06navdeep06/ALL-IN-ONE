@@ -1,0 +1,165 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// ─── User ────────────────────────────────────────────────────────────────────────
+
+model User {
+  id             String   @id
+  email          String   @unique
+  name           String
+  passwordHash   String    @default("")
+  avatarUrl      String?
+  elevenLabsVoiceId String?
+  heyGenAvatarId    String?
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  ideas          Idea[]
+  pipelineRuns   PipelineRun[]
+  personaProfile PersonaProfile?
+  socialAccounts SocialAccount[]
+
+  @@map("users")
+}
+
+// ─── Idea ─────────────────────────────────────────────────────────────────────
+
+model Idea {
+  id          String     @id @default(cuid())
+  creatorId   String
+  title       String
+  description String?
+  score       Int        @default(0)
+  series      String?
+  episode     Int?
+  status      IdeaStatus @default(IDEA)
+  postDate    DateTime?
+  createdAt   DateTime   @default(now())
+  updatedAt   DateTime   @updatedAt
+
+  creator      User          @relation(fields: [creatorId], references: [id], onDelete: Cascade)
+  pipelineRuns PipelineRun[]
+
+  @@index([creatorId])
+  @@index([status])
+  @@map("ideas")
+}
+
+enum IdeaStatus {
+  IDEA
+  IN_PROGRESS
+  POSTED
+}
+
+// ─── Pipeline ─────────────────────────────────────────────────────────────────
+
+model PipelineRun {
+  id        String    @id @default(cuid())
+  ideaId    String
+  creatorId String
+  status    RunStatus @default(PENDING)
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+
+  idea    Idea            @relation(fields: [ideaId], references: [id], onDelete: Cascade)
+  creator User            @relation(fields: [creatorId], references: [id], onDelete: Cascade)
+  stages  PipelineStage[]
+
+  @@index([creatorId])
+  @@index([ideaId])
+  @@map("pipeline_runs")
+}
+
+enum RunStatus {
+  PENDING
+  IN_PROGRESS
+  COMPLETED
+  FAILED
+}
+
+model PipelineStage {
+  id         String      @id @default(cuid())
+  runId      String
+  stage      StageType
+  status     StageStatus @default(PENDING)
+  outputUrl  String?
+  outputData Json?
+  errorMsg   String?
+  attempts   Int         @default(0)
+  createdAt  DateTime    @default(now())
+  updatedAt  DateTime    @updatedAt
+
+  run PipelineRun @relation(fields: [runId], references: [id], onDelete: Cascade)
+
+  @@unique([runId, stage])
+  @@index([runId])
+  @@map("pipeline_stages")
+}
+
+enum StageType {
+  SCRIPT
+  AUDIO
+  VIDEO
+  CAPTIONS
+  EXPORT
+}
+
+enum StageStatus {
+  PENDING
+  IN_PROGRESS
+  COMPLETED
+  FAILED
+  RETRYING
+}
+
+// ─── Persona ──────────────────────────────────────────────────────────────────
+
+model PersonaProfile {
+  id               String   @id @default(cuid())
+  creatorId        String   @unique
+  scriptStructure  Json
+  avgVideoLength   Int?
+  captionStyle     String?
+  titleConventions String?
+  toneDescriptor   String?
+  rawExtracts      Json?
+  updatedAt        DateTime @updatedAt
+
+  creator User @relation(fields: [creatorId], references: [id], onDelete: Cascade)
+
+  @@map("persona_profiles")
+}
+
+// ─── Social ───────────────────────────────────────────────────────────────────
+
+model SocialAccount {
+  id             String    @id @default(cuid())
+  creatorId      String
+  platform       Platform
+  accessToken    String
+  refreshToken   String?
+  platformUserId String
+  expiresAt      DateTime?
+  createdAt      DateTime  @default(now())
+
+  creator User @relation(fields: [creatorId], references: [id], onDelete: Cascade)
+
+  @@unique([creatorId, platform])
+  @@index([creatorId])
+  @@map("social_accounts")
+}
+
+enum Platform {
+  TIKTOK
+  INSTAGRAM
+  YOUTUBE
+}
