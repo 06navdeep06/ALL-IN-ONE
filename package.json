@@ -21,7 +21,7 @@
     "@types/node": "^22.10.10"
   },
   "engines": {
-    "node": ">=20.0.0"
+    "node": "20.x"
   },
   "packageManager": "pnpm@9.15.4"
 }
